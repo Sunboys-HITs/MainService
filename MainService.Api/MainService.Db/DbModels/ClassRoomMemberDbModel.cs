@@ -13,4 +13,5 @@ public enum ClassRoomMemberRoleDbModel
 {
     Student,
     Teacher,
+    Admin,
 }
