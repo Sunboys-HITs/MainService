@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: main-service
+  namespace: app
+  labels:
+    app.kubernetes.io/name: main-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: main-service
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: main-service
+    spec:
+      containers:
+        - name: main-service
+          image: IMAGE_PLACEHOLDER
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8080
+          env:
+            - name: ASPNETCORE_ENVIRONMENT
+              value: Production
+            - name: ASPNETCORE_URLS
+              value: http://+:8080
+            - name: ConnectionStrings__DefaultConnection
+              valueFrom:
+                secretKeyRef:
+                  name: main-database
+                  key: connection-string
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: main-service
+  namespace: app
+  labels:
+    app.kubernetes.io/name: main-service
+spec:
+  selector:
+    app.kubernetes.io/name: main-service
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
