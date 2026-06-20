@@ -11,4 +11,5 @@ public class Task
     public Guid ClassRoomId { get; init; }
 
     public IReadOnlyCollection<Solution> Solutions { get; init; } = [];
+    public IReadOnlyCollection<Test> TestCases { get; init; } = [];
 }

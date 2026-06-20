@@ -8,6 +8,7 @@ public class MainServiceDbContext(DbContextOptions<MainServiceDbContext> options
     public DbSet<ClassRoomDbModel> ClassRooms => Set<ClassRoomDbModel>();
     public DbSet<ClassRoomMemberDbModel> ClassRoomMembers => Set<ClassRoomMemberDbModel>();
     public DbSet<TaskDbModel> Tasks => Set<TaskDbModel>();
+    public DbSet<TestDbModel> Tests => Set<TestDbModel>();
     public DbSet<SolutionDbModel> Solutions => Set<SolutionDbModel>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -75,6 +76,35 @@ public class MainServiceDbContext(DbContextOptions<MainServiceDbContext> options
                 .WithOne(solution => solution.Task)
                 .HasForeignKey(solution => solution.TaskId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasMany(task => task.TestCases)
+                .WithOne(test => test.Task)
+                .HasForeignKey(test => test.TaskId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<TestDbModel>(entity =>
+        {
+            entity.ToTable("tests");
+
+            entity.HasKey(test => test.Id);
+
+            entity.Property(test => test.Id)
+                .ValueGeneratedOnAdd();
+
+            entity.Property(test => test.TaskId)
+                .HasColumnName("task_id")
+                .IsRequired();
+
+            entity.Property(test => test.InputData)
+                .HasColumnName("input_data")
+                .IsRequired()
+                .HasMaxLength(4096);
+
+            entity.Property(test => test.ExpectedOutput)
+                .HasColumnName("expected_output")
+                .IsRequired()
+                .HasMaxLength(4096);
         });
 
         modelBuilder.Entity<SolutionDbModel>(entity =>
