@@ -20,6 +20,8 @@ builder.Services.AddScoped<DeleteClassRoomCommandHandler>();
 builder.Services.AddScoped<GetClassRoomByIdQueryHandler>();
 builder.Services.AddScoped<GetClassRoomsQueryHandler>();
 builder.Services.AddScoped<CreateTaskCommandHandler>();
+builder.Services.AddScoped<UpdateTaskCommandHandler>();
+builder.Services.AddScoped<DeleteTaskCommandHandler>();
 builder.Services.AddScoped<GetTaskByIdQueryHandler>();
 builder.Services.AddScoped<GetClassRoomTasksQueryHandler>();
 

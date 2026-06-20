@@ -9,6 +9,8 @@ namespace MainService.Api.Features.Tasks;
 [ApiController]
 public sealed class TasksController(
     CreateTaskCommandHandler createTaskCommandHandler,
+    UpdateTaskCommandHandler updateTaskCommandHandler,
+    DeleteTaskCommandHandler deleteTaskCommandHandler,
     GetTaskByIdQueryHandler getTaskByIdQueryHandler,
     GetClassRoomTasksQueryHandler getClassRoomTasksQueryHandler) : ControllerBase
 {
@@ -86,6 +88,70 @@ public sealed class TasksController(
         catch (EntityNotFoundException exception)
         {
             return NotFound(new { exception.Message });
+        }
+    }
+
+    [HttpPut("tasks/{id:guid}")]
+    [ProducesResponseType<TaskDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<TaskDto>> Update(
+        Guid id,
+        UpdateTaskRequest request,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var task = await updateTaskCommandHandler.Handle(
+                new UpdateTaskCommand(
+                    id,
+                    request.Title,
+                    request.Description,
+                    request.InputSample,
+                    request.OutputSample,
+                    request.Tests,
+                    request.AdminId),
+                cancellationToken);
+
+            return Ok(task);
+        }
+        catch (ArgumentException exception)
+        {
+            return BadRequest(new { exception.Message });
+        }
+        catch (EntityNotFoundException exception)
+        {
+            return NotFound(new { exception.Message });
+        }
+        catch (ForbiddenAccessException exception)
+        {
+            return Problem(exception.Message, statusCode: StatusCodes.Status403Forbidden);
+        }
+    }
+
+    [HttpDelete("tasks/{id:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Delete(
+        Guid id,
+        [FromQuery] Guid adminId,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            await deleteTaskCommandHandler.Handle(new DeleteTaskCommand(id, adminId), cancellationToken);
+
+            return NoContent();
+        }
+        catch (EntityNotFoundException exception)
+        {
+            return NotFound(new { exception.Message });
+        }
+        catch (ForbiddenAccessException exception)
+        {
+            return Problem(exception.Message, statusCode: StatusCodes.Status403Forbidden);
         }
     }
 }
