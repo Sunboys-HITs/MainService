@@ -79,4 +79,4 @@ jobs:
 
       - name: Show service
         if: always()
-        run: kubectl -n "$NAMESPACE" get deployment,service,endpoints "$DEPLOYMENT_NAME" -o wide
+        run: kubectl -n "$NAMESPACE" get deployment,service,endpoints,ingress "$DEPLOYMENT_NAME" -o wide
