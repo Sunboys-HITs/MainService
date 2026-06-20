@@ -16,6 +16,7 @@ public static class TaskMappings
             Tests = dbModel.Tests,
             ClassRoomId = dbModel.ClassRoomId,
             Solutions = dbModel.Solutions.Select(solution => solution.ToDomain()).ToArray(),
+            TestCases = dbModel.TestCases.Select(test => test.ToDomain()).ToArray(),
         };
     }
 
@@ -31,6 +32,7 @@ public static class TaskMappings
             Tests = domain.Tests,
             ClassRoomId = domain.ClassRoomId,
             Solutions = domain.Solutions.Select(solution => solution.ToDbModel()).ToArray(),
+            TestCases = domain.TestCases.Select(test => test.ToDbModel()).ToArray(),
         };
     }
 }

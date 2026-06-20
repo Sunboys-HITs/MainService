@@ -12,4 +12,5 @@ public class TaskDbModel
 
     public ClassRoomDbModel ClassRoom { get; set; } = null!;
     public ICollection<SolutionDbModel> Solutions { get; set; } = [];
+    public ICollection<TestDbModel> TestCases { get; set; } = [];
 }
