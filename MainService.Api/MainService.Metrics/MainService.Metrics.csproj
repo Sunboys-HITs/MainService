@@ -7,8 +7,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\MainService.Db\MainService.Db.csproj"/>
-        <ProjectReference Include="..\MainService.Metrics\MainService.Metrics.csproj"/>
+        <PackageReference Include="prometheus-net" Version="8.2.1" />
     </ItemGroup>
 
 </Project>

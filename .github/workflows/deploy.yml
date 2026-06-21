@@ -11,6 +11,7 @@ env:
   IMAGE_NAME: ghcr.io/sunboys-hits/main-service
   DEPLOYMENT_NAME: main-service
   NAMESPACE: app
+  RABBITMQ_USERNAME: sunboys_app
 
 jobs:
   deploy:
@@ -57,6 +58,16 @@ jobs:
 
       - name: Ensure namespace exists
         run: kubectl create namespace "$NAMESPACE" --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Configure RabbitMQ connection
+        env:
+          RABBITMQ_PASSWORD: ${{ secrets.MAIN_SERVICE_RABBITMQ_PASSWORD || 'sunboys_app_password' }}
+        run: |
+          kubectl -n "$NAMESPACE" create secret generic main-service-rabbitmq \
+            --from-literal=username="$RABBITMQ_USERNAME" \
+            --from-literal=password="$RABBITMQ_PASSWORD" \
+            --dry-run=client \
+            -o yaml | kubectl apply -f -
 
       - name: Configure database connection
         env:
