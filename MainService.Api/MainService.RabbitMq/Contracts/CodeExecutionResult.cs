@@ -12,8 +12,13 @@ public sealed class CodeExecutionResult
     public Guid PackageId { get; set; }
 }
 
-public readonly struct FailedTest
+public sealed class FailedTest
 {
-    public Guid TestId { get; init; }
-    public string Reason { get; init; }
+    public int TestNumber { get; set; }
+    public string InputData { get; set; } = string.Empty;
+    public string ExpectedOutput { get; set; } = string.Empty;
+    public string ActualOutput { get; set; } = string.Empty;
+    public string Status { get; set; } = string.Empty;
+    public Guid? TestId { get; set; }
+    public string? Reason { get; set; }
 }

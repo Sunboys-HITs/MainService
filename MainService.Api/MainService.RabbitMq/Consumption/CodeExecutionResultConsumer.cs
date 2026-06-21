@@ -71,15 +71,35 @@ internal sealed class CodeExecutionResultConsumer(
         try
         {
             var json = Encoding.UTF8.GetString(eventArgs.Body.Span);
-            var result = JsonSerializer.Deserialize<CodeExecutionResult>(
-                json,
-                new JsonSerializerOptions(JsonSerializerDefaults.Web));
+            var result = DeserializeResult(json);
 
             if (result is null)
             {
                 logger.LogWarning("Empty code execution result was received.");
                 MainServiceMetrics.CodeExecutionResultFailuresTotal
                     .WithLabels("empty_result")
+                    .Inc();
+                channel?.BasicAck(eventArgs.DeliveryTag, multiple: false);
+                return;
+            }
+
+            if (result.PackageId == Guid.Empty
+                && Guid.TryParse(result.CorrelationId, out var correlationId))
+            {
+                result.PackageId = correlationId;
+            }
+
+            if (result.PackageId == Guid.Empty
+                && Guid.TryParse(eventArgs.BasicProperties?.CorrelationId, out var messageCorrelationId))
+            {
+                result.PackageId = messageCorrelationId;
+            }
+
+            if (result.PackageId == Guid.Empty)
+            {
+                logger.LogWarning("Code execution result did not contain a package id. Payload: {Payload}", json);
+                MainServiceMetrics.CodeExecutionResultFailuresTotal
+                    .WithLabels("missing_package_id")
                     .Inc();
                 channel?.BasicAck(eventArgs.DeliveryTag, multiple: false);
                 return;
@@ -116,6 +136,14 @@ internal sealed class CodeExecutionResultConsumer(
                 .Inc();
             channel?.BasicAck(eventArgs.DeliveryTag, multiple: false);
         }
+        catch (JsonException exception)
+        {
+            logger.LogWarning(exception, "Invalid code execution result payload was received.");
+            MainServiceMetrics.CodeExecutionResultFailuresTotal
+                .WithLabels("bad_result_payload")
+                .Inc();
+            channel?.BasicAck(eventArgs.DeliveryTag, multiple: false);
+        }
         catch (Exception exception)
         {
             logger.LogError(exception, "Failed to handle code execution result.");
@@ -127,6 +155,27 @@ internal sealed class CodeExecutionResultConsumer(
         finally
         {
             MainServiceMetrics.CodeExecutionResultsInProgress.Dec();
+        }
+    }
+
+    private static CodeExecutionResult? DeserializeResult(string json)
+    {
+        var serializerOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web);
+
+        try
+        {
+            return JsonSerializer.Deserialize<CodeExecutionResult>(json, serializerOptions);
+        }
+        catch (JsonException)
+        {
+            var innerJson = JsonSerializer.Deserialize<string>(json, serializerOptions);
+
+            if (string.IsNullOrWhiteSpace(innerJson))
+            {
+                throw;
+            }
+
+            return JsonSerializer.Deserialize<CodeExecutionResult>(innerJson, serializerOptions);
         }
     }
 }
