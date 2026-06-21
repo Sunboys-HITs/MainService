@@ -58,6 +58,7 @@ jobs:
 
       - name: Ensure namespace exists
         run: kubectl create namespace "$NAMESPACE" --dry-run=client -o yaml | kubectl apply -f -
+
       - name: Configure RabbitMQ connection
         env:
           RABBITMQ_PASSWORD: ${{ secrets.MAIN_SERVICE_RABBITMQ_PASSWORD || 'sunboys_app_password' }}
@@ -65,6 +66,19 @@ jobs:
           kubectl -n "$NAMESPACE" create secret generic main-service-rabbitmq \
             --from-literal=username="$RABBITMQ_USERNAME" \
             --from-literal=password="$RABBITMQ_PASSWORD" \
+            --dry-run=client \
+            -o yaml | kubectl apply -f -
+
+      - name: Configure database connection
+        env:
+          MAIN_DB_PASSWORD: ${{ secrets.MAIN_DB_PASSWORD }}
+        run: |
+          test -n "$MAIN_DB_PASSWORD" || {
+            echo 'MAIN_DB_PASSWORD GitHub Actions secret is not configured' >&2
+            exit 1
+          }
+          kubectl -n "$NAMESPACE" create secret generic main-database \
+            --from-literal=connection-string="Host=main-postgres.infra.svc.cluster.local;Port=5432;Database=main_service;Username=main_service;Password=$MAIN_DB_PASSWORD" \
             --dry-run=client \
             -o yaml | kubectl apply -f -
 
