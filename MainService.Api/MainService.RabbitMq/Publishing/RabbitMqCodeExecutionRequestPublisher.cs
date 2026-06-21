@@ -47,7 +47,7 @@ internal sealed class RabbitMqCodeExecutionRequestPublisher(
 
             var request = new CodeExecutionRequest(
                 code,
-                languageLabel,
+                languageLabel.ToLower(),
                 taskId.ToString(),
                 packageId);
 
