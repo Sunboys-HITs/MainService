@@ -37,6 +37,8 @@ builder.Services.AddRabbitMqCodeExecution(builder.Configuration);
 
 var app = builder.Build();
 
+await ApplyDatabaseMigrationsAsync(app);
+
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
@@ -45,3 +47,23 @@ if (app.Environment.IsDevelopment())
 app.MapControllers();
 
 app.Run();
+
+static async Task ApplyDatabaseMigrationsAsync(WebApplication app)
+{
+    using var scope = app.Services.CreateScope();
+
+    var logger = scope.ServiceProvider
+        .GetRequiredService<ILoggerFactory>()
+        .CreateLogger("DatabaseMigrations");
+    var dbContext = scope.ServiceProvider.GetRequiredService<MainServiceDbContext>();
+
+    try
+    {
+        await dbContext.Database.MigrateAsync();
+    }
+    catch (Exception exception)
+    {
+        logger.LogCritical(exception, "Failed to apply database migrations.");
+        throw;
+    }
+}
