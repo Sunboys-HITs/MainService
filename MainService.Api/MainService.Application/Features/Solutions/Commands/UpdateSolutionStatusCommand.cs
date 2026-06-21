@@ -1,6 +1,7 @@
 using MainService.Application.Common;
 using MainService.Db.Domain;
 using MainService.Db.Repositories;
+using MainService.Metrics;
 
 namespace MainService.Application.Features.Solutions.Commands;
 
@@ -28,6 +29,10 @@ public sealed class UpdateSolutionStatusCommandHandler(ISolutionRepository solut
         {
             throw new EntityNotFoundException("Solution was not found.");
         }
+
+        MainServiceMetrics.SolutionStatusUpdatedTotal
+            .WithLabels(solution.Status.ToString())
+            .Inc();
 
         return solution.ToDto();
     }

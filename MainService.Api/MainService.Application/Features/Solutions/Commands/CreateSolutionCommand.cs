@@ -1,6 +1,7 @@
 using MainService.Application.Common;
 using MainService.Db.Domain;
 using MainService.Db.Repositories;
+using MainService.Metrics;
 
 namespace MainService.Application.Features.Solutions.Commands;
 
@@ -48,6 +49,10 @@ public sealed class CreateSolutionCommandHandler(
         };
 
         var createdSolution = await solutionRepository.CreateAsync(solution, cancellationToken);
+        MainServiceMetrics.SolutionsCreatedTotal
+            .WithLabels(createdSolution.Language.ToString())
+            .Inc();
+
         await solutionExecutionPublisher.PublishAsync(
             createdSolution.TaskId,
             createdSolution.Id,

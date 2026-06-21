@@ -7,7 +7,9 @@ using MainService.Application.Features.Solutions.Commands;
 using MainService.Application.Features.Solutions.Queries;
 using MainService.Application.Features.Tasks.Commands;
 using MainService.Application.Features.Tasks.Queries;
+using MainService.Metrics;
 using MainService.RabbitMq;
+using Prometheus;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -42,6 +44,33 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
+app.UseHttpMetrics();
+app.Use(async (context, next) =>
+{
+    try
+    {
+        await next();
+
+        if (context.Response.StatusCode >= StatusCodes.Status500InternalServerError)
+        {
+            MainServiceMetrics.HttpServerErrorsTotal
+                .WithLabels(context.Request.Path.Value ?? "unknown", context.Response.StatusCode.ToString(), "none")
+                .Inc();
+        }
+    }
+    catch (Exception exception)
+    {
+        MainServiceMetrics.HttpServerErrorsTotal
+            .WithLabels(
+                context.Request.Path.Value ?? "unknown",
+                StatusCodes.Status500InternalServerError.ToString(),
+                exception.GetType().Name)
+            .Inc();
+
+        throw;
+    }
+});
 app.MapControllers();
+app.MapMetrics();
 
 app.Run();

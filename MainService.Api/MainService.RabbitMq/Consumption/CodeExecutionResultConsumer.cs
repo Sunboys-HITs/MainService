@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using MainService.Application.Common;
 using MainService.Application.Features.Solutions.Commands;
+using MainService.Metrics;
 using MainService.RabbitMq.Contracts;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -65,6 +66,8 @@ internal sealed class CodeExecutionResultConsumer(
 
     private async Task HandleResultAsync(object sender, BasicDeliverEventArgs eventArgs)
     {
+        MainServiceMetrics.CodeExecutionResultsInProgress.Inc();
+
         try
         {
             var json = Encoding.UTF8.GetString(eventArgs.Body.Span);
@@ -75,9 +78,19 @@ internal sealed class CodeExecutionResultConsumer(
             if (result is null)
             {
                 logger.LogWarning("Empty code execution result was received.");
+                MainServiceMetrics.CodeExecutionResultFailuresTotal
+                    .WithLabels("empty_result")
+                    .Inc();
                 channel?.BasicAck(eventArgs.DeliveryTag, multiple: false);
                 return;
             }
+
+            MainServiceMetrics.CodeExecutionTestsTotal
+                .WithLabels("passed")
+                .Inc(result.PassedTests);
+            MainServiceMetrics.CodeExecutionTestsTotal
+                .WithLabels("failed")
+                .Inc(result.FailedTestsCount);
 
             using var scope = serviceScopeFactory.CreateScope();
             var handler = scope.ServiceProvider.GetRequiredService<UpdateSolutionStatusCommandHandler>();
@@ -89,17 +102,31 @@ internal sealed class CodeExecutionResultConsumer(
                 new UpdateSolutionStatusCommand(result.PackageId, status),
                 CancellationToken.None);
 
+            MainServiceMetrics.CodeExecutionResultsConsumedTotal
+                .WithLabels(status.ToString())
+                .Inc();
+
             channel?.BasicAck(eventArgs.DeliveryTag, multiple: false);
         }
         catch (EntityNotFoundException exception)
         {
             logger.LogWarning(exception, "Code execution result references an unknown solution.");
+            MainServiceMetrics.CodeExecutionResultFailuresTotal
+                .WithLabels("unknown_solution")
+                .Inc();
             channel?.BasicAck(eventArgs.DeliveryTag, multiple: false);
         }
         catch (Exception exception)
         {
             logger.LogError(exception, "Failed to handle code execution result.");
+            MainServiceMetrics.CodeExecutionResultFailuresTotal
+                .WithLabels("handler_error")
+                .Inc();
             channel?.BasicNack(eventArgs.DeliveryTag, multiple: false, requeue: true);
+        }
+        finally
+        {
+            MainServiceMetrics.CodeExecutionResultsInProgress.Dec();
         }
     }
 }

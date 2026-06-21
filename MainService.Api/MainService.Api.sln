@@ -6,6 +6,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MainService.Db", "MainServi
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MainService.Application", "MainService.Application\MainService.Application.csproj", "{BED0C391-259A-46AA-A62E-75D55D6EAD2A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MainService.Metrics", "MainService.Metrics\MainService.Metrics.csproj", "{2FC504B8-7627-4096-8EF4-073F3FBC82F6}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MainService.RabbitMq", "MainService.RabbitMq\MainService.RabbitMq.csproj", "{B29F5B7E-5E62-43D7-BAF7-843FCBE99E7F}"
 EndProject
 Global
@@ -26,6 +28,10 @@ Global
 		{BED0C391-259A-46AA-A62E-75D55D6EAD2A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BED0C391-259A-46AA-A62E-75D55D6EAD2A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BED0C391-259A-46AA-A62E-75D55D6EAD2A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2FC504B8-7627-4096-8EF4-073F3FBC82F6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2FC504B8-7627-4096-8EF4-073F3FBC82F6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2FC504B8-7627-4096-8EF4-073F3FBC82F6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2FC504B8-7627-4096-8EF4-073F3FBC82F6}.Release|Any CPU.Build.0 = Release|Any CPU
 		{B29F5B7E-5E62-43D7-BAF7-843FCBE99E7F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{B29F5B7E-5E62-43D7-BAF7-843FCBE99E7F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B29F5B7E-5E62-43D7-BAF7-843FCBE99E7F}.Release|Any CPU.ActiveCfg = Release|Any CPU
