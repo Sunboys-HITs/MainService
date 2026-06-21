@@ -13,6 +13,7 @@
     <ItemGroup>
         <ProjectReference Include="..\MainService.Db\MainService.Db.csproj"/>
         <ProjectReference Include="..\MainService.Application\MainService.Application.csproj"/>
+        <ProjectReference Include="..\MainService.RabbitMq\MainService.RabbitMq.csproj"/>
     </ItemGroup>
 
 </Project>

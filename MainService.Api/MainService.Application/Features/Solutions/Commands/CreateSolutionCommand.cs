@@ -12,7 +12,8 @@ public sealed record CreateSolutionCommand(
 
 public sealed class CreateSolutionCommandHandler(
     ITaskRepository taskRepository,
-    ISolutionRepository solutionRepository)
+    ISolutionRepository solutionRepository,
+    ISolutionExecutionPublisher solutionExecutionPublisher)
 {
     public async Task<SolutionDto> Handle(CreateSolutionCommand command, CancellationToken cancellationToken)
     {
@@ -47,6 +48,12 @@ public sealed class CreateSolutionCommandHandler(
         };
 
         var createdSolution = await solutionRepository.CreateAsync(solution, cancellationToken);
+        await solutionExecutionPublisher.PublishAsync(
+            createdSolution.TaskId,
+            createdSolution.Id,
+            createdSolution.Language,
+            createdSolution.Code,
+            cancellationToken);
 
         return createdSolution.ToDto();
     }

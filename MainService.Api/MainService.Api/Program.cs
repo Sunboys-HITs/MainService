@@ -7,6 +7,7 @@ using MainService.Application.Features.Solutions.Commands;
 using MainService.Application.Features.Solutions.Queries;
 using MainService.Application.Features.Tasks.Commands;
 using MainService.Application.Features.Tasks.Queries;
+using MainService.RabbitMq;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -32,6 +33,7 @@ builder.Services.AddScoped<UpdateSolutionStatusCommandHandler>();
 builder.Services.AddScoped<GetSolutionByIdQueryHandler>();
 builder.Services.AddScoped<GetTaskSolutionsQueryHandler>();
 builder.Services.AddScoped<GetUserSolutionsQueryHandler>();
+builder.Services.AddRabbitMqCodeExecution(builder.Configuration);
 
 var app = builder.Build();
 
