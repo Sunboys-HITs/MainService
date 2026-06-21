@@ -1,4 +1,3 @@
-using System.Text.Json;
 using MainService.Application.Common;
 using MainService.Db.Repositories;
 
@@ -35,14 +34,14 @@ public sealed class UpdateTaskCommandHandler(ITaskRepository taskRepository)
             throw new ArgumentException("Task tests are required.", nameof(command));
         }
 
-        ValidateTestsJson(tests);
-
         var task = await taskRepository.GetByIdAsync(command.Id, cancellationToken);
 
         if (task is null)
         {
             throw new EntityNotFoundException("Task was not found.");
         }
+
+        var testCases = TaskTestsParser.Parse(command.Id, tests);
 
         var updatedTask = await taskRepository.UpdateAsync(
             command.Id,
@@ -51,6 +50,7 @@ public sealed class UpdateTaskCommandHandler(ITaskRepository taskRepository)
             NormalizeOptionalText(command.InputSample),
             NormalizeOptionalText(command.OutputSample),
             tests,
+            testCases,
             cancellationToken);
 
         return updatedTask!.ToDto();
@@ -63,15 +63,4 @@ public sealed class UpdateTaskCommandHandler(ITaskRepository taskRepository)
             : value.Trim();
     }
 
-    private static void ValidateTestsJson(string tests)
-    {
-        try
-        {
-            using var document = JsonDocument.Parse(tests);
-        }
-        catch (JsonException exception)
-        {
-            throw new ArgumentException("Task tests must be valid JSON.", nameof(tests), exception);
-        }
-    }
 }

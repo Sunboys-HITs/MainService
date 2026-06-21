@@ -1,4 +1,3 @@
-using System.Text.Json;
 using MainService.Application.Common;
 using MainService.Db.Repositories;
 
@@ -37,8 +36,6 @@ public sealed class CreateTaskCommandHandler(
             throw new ArgumentException("Task tests are required.", nameof(command));
         }
 
-        ValidateTestsJson(tests);
-
         var classRoom = await classRoomRepository.GetByIdAsync(command.ClassRoomId, cancellationToken);
 
         if (classRoom is null)
@@ -46,15 +43,19 @@ public sealed class CreateTaskCommandHandler(
             throw new EntityNotFoundException("Classroom was not found.");
         }
 
+        var taskId = Guid.NewGuid();
+        var testCases = TaskTestsParser.Parse(taskId, tests);
+
         var task = new Db.Domain.Task
         {
-            Id = Guid.NewGuid(),
+            Id = taskId,
             Title = title,
             Description = description,
             InputSample = NormalizeOptionalText(command.InputSample),
             OutputSample = NormalizeOptionalText(command.OutputSample),
             Tests = tests,
             ClassRoomId = command.ClassRoomId,
+            TestCases = testCases,
         };
 
         var createdTask = await taskRepository.CreateAsync(task, cancellationToken);
@@ -69,15 +70,4 @@ public sealed class CreateTaskCommandHandler(
             : value.Trim();
     }
 
-    private static void ValidateTestsJson(string tests)
-    {
-        try
-        {
-            using var document = JsonDocument.Parse(tests);
-        }
-        catch (JsonException exception)
-        {
-            throw new ArgumentException("Task tests must be valid JSON.", nameof(tests), exception);
-        }
-    }
 }

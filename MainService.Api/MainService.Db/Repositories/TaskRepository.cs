@@ -2,6 +2,7 @@ using MainService.Db.Data;
 using MainService.Db.Mappings;
 using Microsoft.EntityFrameworkCore;
 using TaskDomain = MainService.Db.Domain.Task;
+using TestDomain = MainService.Db.Domain.Test;
 
 namespace MainService.Db.Repositories;
 
@@ -22,6 +23,7 @@ public sealed class TaskRepository(MainServiceDbContext dbContext) : ITaskReposi
         var dbModel = await dbContext.Tasks
             .AsNoTracking()
             .Include(task => task.Solutions)
+            .Include(task => task.TestCases)
             .SingleOrDefaultAsync(task => task.Id == id, cancellationToken);
 
         return dbModel?.ToDomain();
@@ -34,6 +36,7 @@ public sealed class TaskRepository(MainServiceDbContext dbContext) : ITaskReposi
         var dbModels = await dbContext.Tasks
             .AsNoTracking()
             .Include(task => task.Solutions)
+            .Include(task => task.TestCases)
             .Where(task => task.ClassRoomId == classRoomId)
             .OrderBy(task => task.Title)
             .ToArrayAsync(cancellationToken);
@@ -48,9 +51,11 @@ public sealed class TaskRepository(MainServiceDbContext dbContext) : ITaskReposi
         string? inputSample,
         string? outputSample,
         string tests,
+        IReadOnlyCollection<TestDomain> testCases,
         CancellationToken cancellationToken)
     {
         var dbModel = await dbContext.Tasks
+            .Include(task => task.TestCases)
             .SingleOrDefaultAsync(task => task.Id == id, cancellationToken);
 
         if (dbModel is null)
@@ -63,6 +68,8 @@ public sealed class TaskRepository(MainServiceDbContext dbContext) : ITaskReposi
         dbModel.InputSample = inputSample;
         dbModel.OutputSample = outputSample;
         dbModel.Tests = tests;
+        dbContext.Tests.RemoveRange(dbModel.TestCases);
+        dbModel.TestCases = testCases.Select(testCase => testCase.ToDbModel()).ToArray();
 
         await dbContext.SaveChangesAsync(cancellationToken);
 

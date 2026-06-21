@@ -1,4 +1,5 @@
 using TaskDomain = MainService.Db.Domain.Task;
+using TestDomain = MainService.Db.Domain.Test;
 
 namespace MainService.Db.Repositories;
 
@@ -14,6 +15,7 @@ public interface ITaskRepository
         string? inputSample,
         string? outputSample,
         string tests,
+        IReadOnlyCollection<TestDomain> testCases,
         CancellationToken cancellationToken);
     Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken);
 }
