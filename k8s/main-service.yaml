@@ -32,6 +32,22 @@ spec:
                 secretKeyRef:
                   name: main-database
                   key: connection-string
+            - name: RabbitMq__HostName
+              value: rabbitmq.infra.svc.cluster.local
+            - name: RabbitMq__Port
+              value: "5672"
+            - name: RabbitMq__VirtualHost
+              value: /
+            - name: RabbitMq__UserName
+              valueFrom:
+                secretKeyRef:
+                  name: main-service-rabbitmq
+                  key: username
+            - name: RabbitMq__Password
+              valueFrom:
+                secretKeyRef:
+                  name: main-service-rabbitmq
+                  key: password
 ---
 apiVersion: v1
 kind: Service
