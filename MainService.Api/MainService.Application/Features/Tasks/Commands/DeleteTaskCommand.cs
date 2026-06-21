@@ -4,12 +4,9 @@ using MainService.Db.Repositories;
 namespace MainService.Application.Features.Tasks.Commands;
 
 public sealed record DeleteTaskCommand(
-    Guid Id,
-    Guid AdminId);
+    Guid Id);
 
-public sealed class DeleteTaskCommandHandler(
-    IClassRoomRepository classRoomRepository,
-    ITaskRepository taskRepository)
+public sealed class DeleteTaskCommandHandler(ITaskRepository taskRepository)
 {
     public async Task Handle(DeleteTaskCommand command, CancellationToken cancellationToken)
     {
@@ -18,16 +15,6 @@ public sealed class DeleteTaskCommandHandler(
         if (task is null)
         {
             throw new EntityNotFoundException("Task was not found.");
-        }
-
-        var isAdmin = await classRoomRepository.IsAdminAsync(
-            task.ClassRoomId,
-            command.AdminId,
-            cancellationToken);
-
-        if (!isAdmin)
-        {
-            throw new ForbiddenAccessException("Only classroom admins can delete tasks.");
         }
 
         await taskRepository.DeleteAsync(command.Id, cancellationToken);

@@ -10,12 +10,9 @@ public sealed record UpdateTaskCommand(
     string Description,
     string? InputSample,
     string? OutputSample,
-    string Tests,
-    Guid AdminId);
+    string Tests);
 
-public sealed class UpdateTaskCommandHandler(
-    IClassRoomRepository classRoomRepository,
-    ITaskRepository taskRepository)
+public sealed class UpdateTaskCommandHandler(ITaskRepository taskRepository)
 {
     public async Task<TaskDto> Handle(UpdateTaskCommand command, CancellationToken cancellationToken)
     {
@@ -45,16 +42,6 @@ public sealed class UpdateTaskCommandHandler(
         if (task is null)
         {
             throw new EntityNotFoundException("Task was not found.");
-        }
-
-        var isAdmin = await classRoomRepository.IsAdminAsync(
-            task.ClassRoomId,
-            command.AdminId,
-            cancellationToken);
-
-        if (!isAdmin)
-        {
-            throw new ForbiddenAccessException("Only classroom admins can update tasks.");
         }
 
         var updatedTask = await taskRepository.UpdateAsync(

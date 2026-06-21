@@ -33,8 +33,7 @@ public sealed class TasksController(
                     request.Description,
                     request.InputSample,
                     request.OutputSample,
-                    request.Tests,
-                    request.AdminId),
+                    request.Tests),
                 cancellationToken);
 
             return CreatedAtAction(nameof(GetById), new { id = task.Id }, task);
@@ -46,10 +45,6 @@ public sealed class TasksController(
         catch (EntityNotFoundException exception)
         {
             return NotFound(new { exception.Message });
-        }
-        catch (ForbiddenAccessException exception)
-        {
-            return Problem(exception.Message, statusCode: StatusCodes.Status403Forbidden);
         }
     }
 
@@ -110,8 +105,7 @@ public sealed class TasksController(
                     request.Description,
                     request.InputSample,
                     request.OutputSample,
-                    request.Tests,
-                    request.AdminId),
+                    request.Tests),
                 cancellationToken);
 
             return Ok(task);
@@ -124,10 +118,6 @@ public sealed class TasksController(
         {
             return NotFound(new { exception.Message });
         }
-        catch (ForbiddenAccessException exception)
-        {
-            return Problem(exception.Message, statusCode: StatusCodes.Status403Forbidden);
-        }
     }
 
     [HttpDelete("tasks/{id:guid}")]
@@ -136,22 +126,17 @@ public sealed class TasksController(
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(
         Guid id,
-        [FromQuery] Guid adminId,
         CancellationToken cancellationToken)
     {
         try
         {
-            await deleteTaskCommandHandler.Handle(new DeleteTaskCommand(id, adminId), cancellationToken);
+            await deleteTaskCommandHandler.Handle(new DeleteTaskCommand(id), cancellationToken);
 
             return NoContent();
         }
         catch (EntityNotFoundException exception)
         {
             return NotFound(new { exception.Message });
-        }
-        catch (ForbiddenAccessException exception)
-        {
-            return Problem(exception.Message, statusCode: StatusCodes.Status403Forbidden);
         }
     }
 }

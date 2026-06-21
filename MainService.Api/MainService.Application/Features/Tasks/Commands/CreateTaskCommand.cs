@@ -10,8 +10,7 @@ public sealed record CreateTaskCommand(
     string Description,
     string? InputSample,
     string? OutputSample,
-    string Tests,
-    Guid AdminId);
+    string Tests);
 
 public sealed class CreateTaskCommandHandler(
     IClassRoomRepository classRoomRepository,
@@ -45,16 +44,6 @@ public sealed class CreateTaskCommandHandler(
         if (classRoom is null)
         {
             throw new EntityNotFoundException("Classroom was not found.");
-        }
-
-        var isAdmin = await classRoomRepository.IsAdminAsync(
-            command.ClassRoomId,
-            command.AdminId,
-            cancellationToken);
-
-        if (!isAdmin)
-        {
-            throw new ForbiddenAccessException("Only classroom admins can create tasks.");
         }
 
         var task = new Db.Domain.Task

@@ -5,5 +5,4 @@ public sealed record UpdateTaskRequest(
     string Description,
     string? InputSample,
     string? OutputSample,
-    string Tests,
-    Guid AdminId);
+    string Tests);
